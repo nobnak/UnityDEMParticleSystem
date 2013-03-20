@@ -47,6 +47,7 @@
      <Compile Include="Assets\Action.cs" />
      <Compile Include="Assets\DEM.cs" />
      <Compile Include="Assets\DEMController.cs" />
+     <Compile Include="Assets\ExternalForces.cs" />
      <Compile Include="Assets\MeshFallController.cs" />
      <Compile Include="Assets\MeshFallModel.cs" />
      <Compile Include="Assets\ObjectFaller.cs" />

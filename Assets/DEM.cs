@@ -5,16 +5,23 @@ using System.Collections.Generic;
 
 public class DEMParticles {
 	public int length = 0;
+	public List<float> masses = new List<float>();
 	public List<float> massesInv = new List<float>();
 	public List<float> radii = new List<float>();
 	public List<Vector2> positions = new List<Vector2>();
 	public List<Vector2> velocities = new List<Vector2>();
 	public Vector2[] forces = new Vector2[0];
 	
-	public void addParticle(float[] massesInvAdd, float[] radiiAdd, 
+	public void addParticle(float[] massesAdd, float[] radiiAdd, 
 			Vector2[] positionsAdd, Vector2[] velocitiesAdd) {
-		length += massesInvAdd.Length;
+		length += massesAdd.Length;
+		
+		masses.AddRange(massesAdd);
+		float[] massesInvAdd = new float[massesAdd.Length];
+		for (int i = 0; i < massesInvAdd.Length; i++)
+			massesInvAdd[i] = 1.0f / massesAdd[i];
 		massesInv.AddRange(massesInvAdd);
+		
 		radii.AddRange(radiiAdd);
 		positions.AddRange(positionsAdd);
 		velocities.AddRange(velocitiesAdd);
@@ -30,17 +37,20 @@ public class DEMParticles {
 }
 
 public class DEM {
-	public float cn = 100.0f;
-	public float kn = 10000.0f;
+	public float cn = 1000.0f;
+	public float kn = 100000.0f;
 	public float ct = 1.0f;
 	public float kt = 1.0f;
 	
-	public Vector2 externalForce = Vector2.zero;
-	
 	private ISpacePartitioning<int> spacePartitioner;
+	private IForce externalForce;
+	private IForce boundaryForce;
 	
-	public DEM(ISpacePartitioning<int> spacePartitioner) {
+	public DEM(ISpacePartitioning<int> spacePartitioner, 
+			IForce externalForce, IForce boundaryForce) {
 		this.spacePartitioner = spacePartitioner;
+		this.externalForce = externalForce;
+		this.boundaryForce = boundaryForce;
 	}
 	
 	public DEMParticles simulate(DEMParticles particles, float t) {
@@ -56,8 +66,12 @@ public class DEM {
 		}
 		
 		for (int iTarget = 0; iTarget < particles.length; iTarget++) {
+			forces[iTarget] += boundaryForce.calcForce(particles, iTarget, t);
+		}
+		
+		for (int iTarget = 0; iTarget < particles.length; iTarget++) {
 			Vector2 accel = forces[iTarget] * massesInv[iTarget];
-			positions[iTarget] += velocities[iTarget];
+			positions[iTarget] += velocities[iTarget] * t;
 			velocities[iTarget] += accel * t;
 		}
 		
@@ -66,13 +80,14 @@ public class DEM {
 	
 	public Vector2 estimateForce(DEMParticles particles, 
 			int iTarget, int[] neighbors, float t) {
-		Vector2 resForce = externalForce;
+		Vector2 resForce = externalForce.calcForce(particles, iTarget, t);
 
 		Vector2 targetPosition = particles.positions[iTarget];
 		Vector2 targetVelocity = particles.velocities[iTarget];
 		float targetRadius = particles.radii[iTarget];
 
-		for (int iNeighbor = 0; iNeighbor < neighbors.Length; iNeighbor++) {
+		for (int i = 0; i < neighbors.Length; i++) {
+			int iNeighbor = neighbors[i];
 			if (iTarget == iNeighbor)
 				continue;
 			
