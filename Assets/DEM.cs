@@ -1,16 +1,30 @@
 using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
-public struct DEMParticle {
-	public int id;
-	public float massInv;
-	public float radius;
-	public Vector2 position;
-	public Vector2 velocity;
+public class DEMParticles {
+	public int length = 0;
+	public List<float> massesInv = new List<float>();
+	public List<float> radii = new List<float>();
+	public List<Vector2> positions = new List<Vector2>();
+	public List<Vector2> velocities = new List<Vector2>();
+	public Vector2[] forces = new Vector2[0];
 	
-	public AABB buildAABB() {
+	public void addParticle(float[] massesInvAdd, float[] radiiAdd, 
+			Vector2[] positionsAdd, Vector2[] velocitiesAdd) {
+		length += massesInvAdd.Length;
+		massesInv.AddRange(massesInvAdd);
+		radii.AddRange(radiiAdd);
+		positions.AddRange(positionsAdd);
+		velocities.AddRange(velocitiesAdd);
+		forces = new Vector2[length];
+	}
+	
+	public AABB buildAABB(int index) {
+		float radius = radii[index];
 		Vector2 vecRadius = new Vector2(radius, radius);
+		Vector2 position = positions[index];
 		return new AABB(position - vecRadius, position + vecRadius);
 	}
 }
@@ -29,37 +43,42 @@ public class DEM {
 		this.spacePartitioner = spacePartitioner;
 	}
 	
-	public DEMParticle[] simulate(DEMParticle[] particles, float t) {
-		DEMParticle[] res = new DEMParticle[particles.Length];
-		DEMParticle[] neighbors = particles;
+	public DEMParticles simulate(DEMParticles particles, float t) {
+		Vector2[] forces = particles.forces;
+		List<Vector2> positions = particles.positions;
+		List<Vector2> velocities = particles.velocities;
+		List<float> massesInv = particles.massesInv;
 		
-		for (int iTarget = 0; iTarget < particles.Length; iTarget++) {
-			DEMParticle target = particles[iTarget];
-#if true
-			int[] particleIndices = spacePartitioner.search(target.buildAABB());
-			neighbors = new DEMParticle[particleIndices.Length];
-			for (int iNeighbor = 0; iNeighbor < neighbors.Length; iNeighbor++)
-				neighbors[iNeighbor] = particles[particleIndices[iNeighbor]];
-#endif
-			res[iTarget] = simulate(target, neighbors, t);
+		for (int iTarget = 0; iTarget < particles.length; iTarget++) {
+			AABB boundingBox = particles.buildAABB(iTarget);
+			int[] neighborIndices = spacePartitioner.search(boundingBox);
+			forces[iTarget] = estimateForce(particles, iTarget, neighborIndices, t);
 		}
 		
-		return res;
+		for (int iTarget = 0; iTarget < particles.length; iTarget++) {
+			Vector2 accel = forces[iTarget] * massesInv[iTarget];
+			positions[iTarget] += velocities[iTarget];
+			velocities[iTarget] += accel * t;
+		}
+		
+		return particles;
 	}
 	
-	public DEMParticle simulate(DEMParticle target, DEMParticle[] neighbors, float t) {
-		DEMParticle res = target;
-		res = target;
-		Vector2 f = externalForce;
+	public Vector2 estimateForce(DEMParticles particles, 
+			int iTarget, int[] neighbors, float t) {
+		Vector2 resForce = externalForce;
+
+		Vector2 targetPosition = particles.positions[iTarget];
+		Vector2 targetVelocity = particles.velocities[iTarget];
+		float targetRadius = particles.radii[iTarget];
 
 		for (int iNeighbor = 0; iNeighbor < neighbors.Length; iNeighbor++) {
-			DEMParticle neighbor = neighbors[iNeighbor];
-			if (target.id == neighbor.id)
+			if (iTarget == iNeighbor)
 				continue;
 			
-			Vector2 pos = neighbor.position - target.position;
-			Vector2 v = neighbor.velocity - target.velocity;
-			float r12 = target.radius + neighbor.radius;
+			Vector2 pos = particles.positions[iNeighbor] - targetPosition;
+			Vector2 v = particles.velocities[iNeighbor] - targetVelocity;
+			float r12 = particles.radii[iNeighbor] + targetRadius;
 			
 			float dist2 = Vector2.SqrMagnitude(pos);
 			if (dist2 >= (r12 * r12) || dist2 <= Mathf.Epsilon)
@@ -67,13 +86,8 @@ public class DEM {
 			
 			float dist = Mathf.Sqrt((float)dist2);
 			float dxCoeff = ((r12 - dist) / dist);
-			f += (-kn * dxCoeff * pos - cn * v);
+			resForce += (-kn * dxCoeff * pos - cn * v);
 		}
-		Vector2 a = f * target.massInv;
-		
-		res.position += target.velocity * t;
-		res.velocity += a * t;
-				
-		return res;
+		return resForce;
 	}
 }

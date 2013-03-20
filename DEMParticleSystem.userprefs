@@ -2,12 +2,15 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\DEM.cs">
     <Files>
-      <File FileName="Assets\DEMController.cs" Line="9" Column="51" />
-      <File FileName="Assets\DEM.cs" Line="38" Column="9" />
+      <File FileName="Assets\DEM.cs" Line="18" Column="28" />
+      <File FileName="Assets\DEMController.cs" Line="15" Column="39" />
+      <File FileName="Assets\SpacePartitioner.cs" Line="148" Column="34" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
-  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches>
+    <Watch file="Assets\DEM.cs" line="69" offsetX="386" offsetY="1020" expression="neighbors" liveUpdate="False" />
+  </MonoDevelop.Ide.DebuggingService.PinnedWatches>
 </Properties>

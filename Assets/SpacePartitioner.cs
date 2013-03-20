@@ -42,6 +42,7 @@ public interface ISpacePartitioning<T> {
 	void add(AABB box, T val);
 	void move(AABB box, T val);
 	void remove(T val);
+	void clear();
 }
 public class NoSP<T> : ISpacePartitioning<T> {
 	private HashSet<T> indices;
@@ -72,6 +73,11 @@ public class NoSP<T> : ISpacePartitioning<T> {
 	public void remove (T val)
 	{
 		indices.Remove(val);
+	}
+	
+	public void clear()
+	{
+		indices.Clear();
 	}
 	#endregion
 }
@@ -139,15 +145,18 @@ public class GridSP<T> : ISpacePartitioning<T> {
 	public T[] search(AABB box) {
 		Bound indices = boundIndices(box);
 		
-		List<T> res = new List<T>();
+		List<T> founds = new List<T>();
 		for (int iy = indices.iYMin; iy <= indices.iYMax; iy++) {
 			for (int ix = indices.iXMin; ix <= indices.iXMax; ix++) {
 				List<T> resInBox = boxes[ix, iy];
 				if (resInBox != null)
-					res.AddRange(resInBox);
+					foreach (T res in resInBox)
+						if (!founds.Contains(res))
+							founds.Add(res);
 			}
 		}
-		return res.ToArray();
+		
+		return founds.ToArray();
 	}
 	
 	public void add(AABB box, T val) {
@@ -187,5 +196,14 @@ public class GridSP<T> : ISpacePartitioning<T> {
 			List<T> valsInBox = boxes[gp.x, gp.y];
 			valsInBox.Remove(val);
 		}
+	}
+	
+	public void clear() {
+		foreach (LinkedList<GridPoint> boxIndices in invIndices.Values) {
+			foreach (GridPoint gp in boxIndices) {
+				boxes[gp.x, gp.y].Clear();
+			}
+		}
+		invIndices.Clear();
 	}
 }

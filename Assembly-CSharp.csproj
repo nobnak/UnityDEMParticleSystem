@@ -47,6 +47,9 @@
      <Compile Include="Assets\Action.cs" />
      <Compile Include="Assets\DEM.cs" />
      <Compile Include="Assets\DEMController.cs" />
+     <Compile Include="Assets\MeshFallController.cs" />
+     <Compile Include="Assets\MeshFallModel.cs" />
+     <Compile Include="Assets\ObjectFaller.cs" />
      <Compile Include="Assets\SpacePartitioner.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
