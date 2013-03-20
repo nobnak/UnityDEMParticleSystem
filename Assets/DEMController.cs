@@ -6,7 +6,7 @@ public class DEMController : MonoBehaviour {
 	public GameObject[] spheres;
 	
 	private float rho = 998;
-	private float kn = 100000;
+	private float kn = 1000000;
 	private float cn = 100000;
 	private Vector2 boundBL = new Vector2(-50, -50);
 	private Vector2 boundTR = new Vector2(50, 50);

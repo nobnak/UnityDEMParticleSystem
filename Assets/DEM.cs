@@ -37,7 +37,7 @@ public class DEMParticles {
 }
 
 public class DEM {
-	public float cn = 1000.0f;
+	public float cn = 10000.0f;
 	public float kn = 100000.0f;
 	public float ct = 1.0f;
 	public float kt = 1.0f;
@@ -91,8 +91,8 @@ public class DEM {
 			if (iTarget == iNeighbor)
 				continue;
 			
-			Vector2 pos = particles.positions[iNeighbor] - targetPosition;
-			Vector2 v = particles.velocities[iNeighbor] - targetVelocity;
+			Vector2 pos = targetPosition - particles.positions[iNeighbor];
+			Vector2 v = targetVelocity - particles.velocities[iNeighbor];
 			float r12 = particles.radii[iNeighbor] + targetRadius;
 			
 			float dist2 = Vector2.SqrMagnitude(pos);
@@ -101,7 +101,7 @@ public class DEM {
 			
 			float dist = Mathf.Sqrt((float)dist2);
 			float dxCoeff = ((r12 - dist) / dist);
-			resForce += (-kn * dxCoeff * pos - cn * v);
+			resForce += (kn * dxCoeff * pos - cn * v);
 		}
 		return resForce;
 	}
