@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Action.cs" />
+     <Compile Include="Assets\CollisionParticleController.cs" />
      <Compile Include="Assets\DEM.cs" />
      <Compile Include="Assets\DEMController.cs" />
      <Compile Include="Assets\ExternalForces.cs" />

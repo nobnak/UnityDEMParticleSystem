@@ -37,10 +37,8 @@ public class DEMParticles {
 }
 
 public class DEM {
-	public float cn = 10000.0f;
-	public float kn = 100000.0f;
-	public float ct = 1.0f;
-	public float kt = 1.0f;
+	private float cn = 100.0f;
+	private float kn = 1000.0f;
 	
 	private ISpacePartitioning<int> spacePartitioner;
 	private IForce externalForce;
@@ -71,8 +69,10 @@ public class DEM {
 		
 		for (int iTarget = 0; iTarget < particles.length; iTarget++) {
 			Vector2 accel = forces[iTarget] * massesInv[iTarget];
-			positions[iTarget] += velocities[iTarget] * t;
-			velocities[iTarget] += accel * t;
+			Vector2 velocity = velocities[iTarget];
+			
+			positions[iTarget] += t * velocity;
+			velocities[iTarget] += t * accel;
 		}
 		
 		return particles;
